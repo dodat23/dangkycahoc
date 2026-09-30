@@ -5,26 +5,14 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import json
 
-# Cấu hình trang Streamlit
-st.set_page_config(
-    page_title="Hệ Thống Đăng Ký Lớp Thanh Nhạc",
-    page_icon="🎵",
-    layout="centered"
-)
-
-# Kết nối Google Sheets (Hỗ trợ cả chạy local lẫn trên Streamlit Cloud Secrets)
-SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-SHEET_NAME = "QL_Thanh_Nhac"
-
 @st.cache_resource
 def ket_noi_google_sheets():
     try:
-        # Nếu đang chạy trên Streamlit Cloud và có cấu hình Secrets
-        if "gcp_service_account" in st.secrets:
-            creds_dict = dict(st.secrets["gcp_service_account"])
-            creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, SCOPE)
+        if "google_credentials" in st.secrets:
+            # Đọc chuỗi JSON từ Secrets
+            creds_info = json.loads(st.secrets["google_credentials"])
+            creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_info, SCOPE)
         else:
-            # Nếu chạy trên máy tính cá nhân dùng file credentials.json
             CREDS_FILE = "credentials.json"
             creds = ServiceAccountCredentials.from_json_keyfile_name(CREDS_FILE, SCOPE)
             
@@ -34,8 +22,6 @@ def ket_noi_google_sheets():
     except Exception as e:
         st.error(f"Lỗi kết nối Google Sheets: {e}")
         return None
-
-sheet = ket_noi_google_sheets()
 
 # CSS giao diện phong cách Âm Nhạc, Responsive & Modal thông báo trung tâm
 st.markdown("""
