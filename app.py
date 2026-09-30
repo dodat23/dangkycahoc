@@ -6,6 +6,17 @@ from google.oauth2.service_account import Credentials
 import json
 import traceback
 
+# === ĐẶT BIẾN CẤU HÌNH LÊN ĐẦU FILE ===
+SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+SHEET_NAME = "QL_Thanh_Nhac"
+
+# Cấu hình trang Streamlit
+st.set_page_config(
+    page_title="Hệ Thống Đăng Ký Lớp Thanh Nhạc",
+    page_icon="🎵",
+    layout="centered"
+)
+
 @st.cache_resource
 def ket_noi_google_sheets():
     try:
@@ -36,6 +47,7 @@ def ket_noi_google_sheets():
         st.error(f"Lỗi kết nối Google Sheets chi tiết: {str(e)}")
         st.code(traceback.format_exc())
         return None
+
 sheet = ket_noi_google_sheets()
 
 # CSS giao diện
