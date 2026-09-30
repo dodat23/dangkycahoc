@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import json
+import traceback
 
 # Cấu hình trang Streamlit
 st.set_page_config(
@@ -19,11 +20,9 @@ SHEET_NAME = "QL_Thanh_Nhac"
 def ket_noi_google_sheets():
     try:
         if "google_credentials" in st.secrets:
-            # Đọc chuỗi JSON an toàn từ biến secrets
             creds_info = json.loads(st.secrets["google_credentials"])
             creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_info, SCOPE)
         else:
-            # Dùng file khi chạy local trên máy
             CREDS_FILE = "credentials.json"
             creds = ServiceAccountCredentials.from_json_keyfile_name(CREDS_FILE, SCOPE)
             
@@ -31,7 +30,8 @@ def ket_noi_google_sheets():
         sheet = client.open(SHEET_NAME).sheet1
         return sheet
     except Exception as e:
-        st.error(f"Lỗi kết nối Google Sheets: {e}")
+        st.error(f"Lỗi kết nối Google Sheets chi tiết: {str(e)}")
+        st.code(traceback.format_exc())
         return None
 
 sheet = ket_noi_google_sheets()
@@ -192,7 +192,7 @@ with col2:
     st.markdown("</div>", unsafe_allow_html=True)
 
 st.divider()
-st.subheader("✍️ Đăng Ký Luyện Thanh")
+st.subheader("✍️️ Đăng Ký Luyện Thanh")
 
 if tong_so_hoc_vien < 10:
     with st.container():
