@@ -6,22 +6,23 @@ from google.oauth2.service_account import Credentials
 import json
 import traceback
 
-# Cấu hình trang Streamlit
-st.set_page_config(
-    page_title="Hệ Thống Đăng Ký Lớp Thanh Nhạc",
-    page_icon="🎵",
-    layout="centered"
-)
-
-SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-SHEET_NAME = "QL_Thanh_Nhac"
-
 @st.cache_resource
 def ket_noi_google_sheets():
     try:
-        if "google_credentials" in st.secrets:
-            # Đọc chuỗi JSON an toàn từ biến secrets trên Streamlit Cloud
-            creds_info = json.loads(st.secrets["google_credentials"])
+        if "type" in st.secrets:
+            # Đọc trực tiếp các key dạng TOML riêng lẻ từ Streamlit Secrets
+            creds_info = {
+                "type": st.secrets["type"],
+                "project_id": st.secrets["project_id"],
+                "private_key_id": st.secrets["private_key_id"],
+                "private_key": st.secrets["private_key"].replace("\\n", "\n"),
+                "client_email": st.secrets["client_email"],
+                "client_id": st.secrets["client_id"],
+                "auth_uri": st.secrets["auth_uri"],
+                "token_uri": st.secrets["token_uri"],
+                "auth_provider_x509_cert_url": st.secrets["auth_provider_x509_cert_url"],
+                "client_x509_cert_url": st.secrets["client_x509_cert_url"]
+            }
             creds = Credentials.from_service_account_info(creds_info, scopes=SCOPE)
         else:
             # Dùng file credentials.json khi chạy trực tiếp trên máy local
@@ -35,7 +36,6 @@ def ket_noi_google_sheets():
         st.error(f"Lỗi kết nối Google Sheets chi tiết: {str(e)}")
         st.code(traceback.format_exc())
         return None
-
 sheet = ket_noi_google_sheets()
 
 # CSS giao diện
