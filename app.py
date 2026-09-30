@@ -12,19 +12,18 @@ st.set_page_config(
     layout="centered"
 )
 
-# Kết nối Google Sheets (Hỗ trợ cả chạy local lẫn trên Streamlit Cloud Secrets)
 SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 SHEET_NAME = "QL_Thanh_Nhac"
 
 @st.cache_resource
 def ket_noi_google_sheets():
     try:
-        # Nếu đang chạy trên Streamlit Cloud và có cấu hình Secrets
-        if "gcp_service_account" in st.secrets:
-            creds_dict = dict(st.secrets["gcp_service_account"])
-            creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, SCOPE)
+        if "google_credentials" in st.secrets:
+            # Đọc chuỗi JSON an toàn từ biến secrets
+            creds_info = json.loads(st.secrets["google_credentials"])
+            creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_info, SCOPE)
         else:
-            # Nếu chạy trên máy tính cá nhân dùng file credentials.json
+            # Dùng file khi chạy local trên máy
             CREDS_FILE = "credentials.json"
             creds = ServiceAccountCredentials.from_json_keyfile_name(CREDS_FILE, SCOPE)
             
@@ -37,43 +36,33 @@ def ket_noi_google_sheets():
 
 sheet = ket_noi_google_sheets()
 
-# CSS giao diện phong cách Âm Nhạc, Responsive & Modal thông báo trung tâm
+# CSS giao diện
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
     .stApp {
         background: linear-gradient(135deg, #fdf2f8 0%, #fff1f2 50%, #fae8ff 100%);
         font-family: 'Plus Jakarta Sans', sans-serif;
         color: #1f2937;
     }
-
     @keyframes floatNotes {
         0% { transform: translateY(0px) rotate(0deg); }
         50% { transform: translateY(-6px) rotate(5deg); }
         100% { transform: translateY(0px) rotate(0deg); }
     }
-    
     .music-header {
         text-align: center;
         animation: floatNotes 4s ease-in-out infinite;
     }
-
     .stTextInput > div > div > input {
         background-color: #ffffff;
         color: #1f2937;
         border: 1.5px solid #f472b6;
         border-radius: 14px;
         padding: 12px 16px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 4px 10px rgba(244, 114, 182, 0.08);
         font-size: 16px;
     }
-    .stTextInput > div > div > input:focus {
-        border-color: #db2777;
-        box-shadow: 0 0 0 4px rgba(219, 39, 119, 0.2);
-    }
-
     div.stButton > button {
         border-radius: 14px;
         font-weight: 700;
@@ -83,16 +72,12 @@ st.markdown("""
         width: 100%;
         padding: 12px 20px;
         box-shadow: 0 8px 20px rgba(236, 72, 153, 0.4);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        letter-spacing: 0.5px;
         cursor: pointer;
     }
     div.stButton > button:hover {
         transform: translateY(-3px);
         background: linear-gradient(135deg, #db2777 0%, #9d174d 100%);
-        box-shadow: 0 12px 25px rgba(236, 72, 153, 0.6);
     }
-
     .card {
         padding: 24px;
         border-radius: 22px;
@@ -101,19 +86,7 @@ st.markdown("""
         border: 1.5px solid rgba(244, 114, 182, 0.4);
         box-shadow: 0 12px 30px -6px rgba(244, 114, 182, 0.15);
         margin-bottom: 18px;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 18px 35px -6px rgba(236, 72, 153, 0.28);
-        border-color: #ec4899;
-    }
-    .card h4 {
-        color: #be185d;
-        margin-bottom: 8px;
-        font-weight: 800;
-    }
-
     .stProgress > div > div > div > div {
         background: linear-gradient(90deg, #f472b6 0%, #be185d 100%);
         border-radius: 12px;
@@ -161,7 +134,6 @@ def cap_nhat_len_sheets(dang_ky_dict):
         rows_to_add.append([hv, "Ca 1 (8:00 - 9:45)"])
     for hv in dang_ky_dict["Ca 2 (9:45 - 11:30)"]:
         rows_to_add.append([hv, "Ca 2 (9:45 - 11:30)"])
-    
     if rows_to_add:
         sheet.append_rows(rows_to_add)
 
@@ -170,7 +142,7 @@ ngay_thu_7 = lay_ngay_thu_7_gan_nhat()
 
 st.markdown("""
     <div class="music-header">
-        <h1 style='color: #be185d; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0;'>
+        <h1 style='color: #be185d; font-weight: 800; margin-bottom: 0;'>
             🎶 Đăng ký ca học thanh nhạc 🎤
         </h1>
         <p style='color: #6b7280; font-size: 17px; margin-top: 5px;'>
