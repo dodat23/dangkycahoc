@@ -18,35 +18,8 @@ st.set_page_config(
 def ket_noi_google_sheets():
     try:
         scopes = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        if "type" in st.secrets:
-            # Xử lý làm sạch private_key để tránh lỗi định dạng PEM file
-            raw_key = st.secrets["private_key"]
-            if "-----BEGIN PRIVATE KEY-----" in raw_key:
-                formatted_key = raw_key.strip()
-            else:
-                # Trường hợp bị mất ký tự xuống dòng, khôi phục lại chuẩn PEM
-                formatted_key = raw_key.replace(" ", "\n")
-                if "BEGIN\nPRIVATE\nKEY" in formatted_key:
-                    formatted_key = formatted_key.replace("BEGIN\nPRIVATE\nKEY", "BEGIN PRIVATE KEY")
-                if "END\nPRIVATE\nKEY" in formatted_key:
-                    formatted_key = formatted_key.replace("END\nPRIVATE\nKEY", "END PRIVATE KEY")
-
-            creds_info = {
-                "type": st.secrets["type"],
-                "project_id": st.secrets["project_id"],
-                "private_key_id": st.secrets["private_key_id"],
-                "private_key": formatted_key,
-                "client_email": st.secrets["client_email"],
-                "client_id": st.secrets["client_id"],
-                "auth_uri": st.secrets["auth_uri"],
-                "token_uri": st.secrets["token_uri"],
-                "auth_provider_x509_cert_url": st.secrets["auth_provider_x509_cert_url"],
-                "client_x509_cert_url": st.secrets["client_x509_cert_url"]
-            }
-            creds = Credentials.from_service_account_info(creds_info, scopes=scopes)
-        else:
-            creds = Credentials.from_service_account_file("credentials.json", scopes=scopes)
-            
+        # Đọc trực tiếp từ file credentials.json được tải lên GitHub
+        creds = Credentials.from_service_account_file("credentials.json", scopes=scopes)
         client = gspread.authorize(creds)
         sheet = client.open(SHEET_NAME).sheet1
         return sheet
