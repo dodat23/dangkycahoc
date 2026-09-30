@@ -18,8 +18,11 @@ st.set_page_config(
 def ket_noi_google_sheets():
     try:
         scopes = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        # Đọc trực tiếp từ file credentials.json được tải lên GitHub
-        creds = Credentials.from_service_account_file("credentials.json", scopes=scopes)
+        
+        # Đọc trực tiếp từ st.secrets của Streamlit Cloud
+        secrets_dict = dict(st.secrets["gpex"]) # Hoặc tên bảng mật khẩu bạn đặt trong Streamlit
+        creds = Credentials.from_service_account_info(secrets_dict, scopes=scopes)
+        
         client = gspread.authorize(creds)
         sheet = client.open(SHEET_NAME).sheet1
         return sheet
