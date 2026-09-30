@@ -11,15 +11,22 @@ st.set_page_config(
     layout="centered"
 )
 
-# Kết nối Google Sheets (Sử dụng file credentials.json riêng biệt, không lộ thông tin)
+# Kết nối Google Sheets (Hỗ trợ cả chạy local lẫn trên Streamlit Cloud Secrets)
 SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-CREDS_FILE = "credentials.json"
 SHEET_NAME = "QL_Thanh_Nhac"
 
 @st.cache_resource
 def ket_noi_google_sheets():
     try:
-        creds = ServiceAccountCredentials.from_json_keyfile_name(CREDS_FILE, SCOPE)
+        # Nếu đang chạy trên Streamlit Cloud và có cấu hình Secrets
+        if "gcp_service_account" in st.secrets:
+            creds_dict = dict(st.secrets["gcp_service_account"])
+            creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, SCOPE)
+        else:
+            # Nếu chạy trên máy tính cá nhân dùng file credentials.json
+            CREDS_FILE = "credentials.json"
+            creds = ServiceAccountCredentials.from_json_keyfile_name(CREDS_FILE, SCOPE)
+            
         client = gspread.authorize(creds)
         sheet = client.open(SHEET_NAME).sheet1
         return sheet
@@ -51,7 +58,6 @@ st.markdown("""
         animation: floatNotes 4s ease-in-out infinite;
     }
 
-    /* Tối ưu Input gọn gàng tuyệt đối */
     .stTextInput > div > div > input {
         background-color: #ffffff;
         color: #1f2937;
@@ -67,7 +73,6 @@ st.markdown("""
         box-shadow: 0 0 0 4px rgba(219, 39, 119, 0.2);
     }
 
-    /* Nút bấm phong cách giai điệu bùng nổ */
     div.stButton > button {
         border-radius: 14px;
         font-weight: 700;
@@ -86,11 +91,7 @@ st.markdown("""
         background: linear-gradient(135deg, #db2777 0%, #9d174d 100%);
         box-shadow: 0 12px 25px rgba(236, 72, 153, 0.6);
     }
-    div.stButton > button:active {
-        transform: translateY(1px);
-    }
 
-    /* Thẻ Card Ca học */
     .card {
         padding: 24px;
         border-radius: 22px;
@@ -166,7 +167,6 @@ def cap_nhat_len_sheets(dang_ky_dict):
 danh_sach_dang_ky = tai_du_lieu_sheets()
 ngay_thu_7 = lay_ngay_thu_7_gan_nhat()
 
-# Tiêu đề
 st.markdown("""
     <div class="music-header">
         <h1 style='color: #be185d; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0;'>
@@ -186,7 +186,6 @@ st.progress(tong_so_hoc_vien / 10)
 
 st.write("")
 
-# Hiển thị 2 ca học
 col1, col2 = st.columns(2)
 
 with col1:
@@ -219,7 +218,6 @@ with col2:
             st.write(f"**{idx}.** 🎶 {hv}")
     st.markdown("</div>", unsafe_allow_html=True)
 
-# ================= PHẦN ĐĂNG KÝ LỊCH HỌC =================
 st.divider()
 st.subheader("✍️ Đăng Ký Luyện Thanh")
 
@@ -266,7 +264,6 @@ if tong_so_hoc_vien < 10:
                         st.session_state['clear_input'] = True
                         st.rerun()
 
-# ================= PHẦN KIỂM TRA & HỦY LỊCH CÁ NHÂN =================
 st.divider()
 st.subheader("🔍 Tra Cứu Ca Học")
 with st.container():
@@ -298,7 +295,6 @@ if 'search_name' in st.session_state and st.session_state['search_name']:
     if not tim_thay:
         st.caption(f"Không tìm thấy dữ liệu đăng ký cho tên {name_to_find} trong tuần này.")
 
-# ================= CHỈ HIỆN SHEET KHI ĐỦ 10/10 HỌC VIÊN =================
 if tong_so_hoc_vien == 10:
     st.divider()
     st.success("📊 **Bảng Sheet tổng hợp hòa ca chính thức được mở:**")
