@@ -3,11 +3,8 @@ import pandas as pd
 from datetime import datetime, timedelta
 import gspread
 from google.oauth2.service_account import Credentials
-import json
 import traceback
 
-# === ĐẶT BIẾN CẤU HÌNH LÊN ĐẦU FILE ===
-SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 SHEET_NAME = "QL_Thanh_Nhac"
 
 # Cấu hình trang Streamlit
@@ -20,8 +17,8 @@ st.set_page_config(
 @st.cache_resource
 def ket_noi_google_sheets():
     try:
+        scopes = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         if "type" in st.secrets:
-            # Đọc trực tiếp các key dạng TOML riêng lẻ từ Streamlit Secrets
             creds_info = {
                 "type": st.secrets["type"],
                 "project_id": st.secrets["project_id"],
@@ -34,11 +31,9 @@ def ket_noi_google_sheets():
                 "auth_provider_x509_cert_url": st.secrets["auth_provider_x509_cert_url"],
                 "client_x509_cert_url": st.secrets["client_x509_cert_url"]
             }
-            creds = Credentials.from_service_account_info(creds_info, scopes=SCOPE)
+            creds = Credentials.from_service_account_info(creds_info, scopes=scopes)
         else:
-            # Dùng file credentials.json khi chạy trực tiếp trên máy local
-            CREDS_FILE = "credentials.json"
-            creds = Credentials.from_service_account_file(CREDS_FILE, scopes=SCOPE)
+            creds = Credentials.from_service_account_file("credentials.json", scopes=scopes)
             
         client = gspread.authorize(creds)
         sheet = client.open(SHEET_NAME).sheet1
